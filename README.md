@@ -4,17 +4,26 @@ A multi-client instrument telemetry server, built to explore systems design,
 networking, concurrency, authentication, and memory safety — areas outside
 the Python-based tooling in the rest of my portfolio.
 
-## Status: Milestone 1 — single-client synchronous echo server
+## Status: Milestone 2 — async I/O, multiple concurrent clients
 
 - Custom length-prefixed framing protocol over TCP (4-byte big-endian length
   header + payload)
-- Synchronous accept/read/write using Boost.Asio
-- Verified round-trip with a standalone test client
+- Async server built on Boost.Asio's event loop (`io_context`): one thread
+  handles many simultaneous clients via `async_accept`/`async_read`/`async_write`
+  callback chains, instead of one thread per client
+- Each connected client is a `Session` object with its own socket and buffers,
+  managed by `shared_ptr`/`enable_shared_from_this` so it stays alive for the
+  duration of its pending async operations and cleans itself up automatically
+  on disconnect
+- Verified with concurrent multi-client tests: 5 clients connected
+  simultaneously, each sending multiple messages, all round-tripping correctly
+  with interleaved delivery (proof of true concurrent handling, not
+  sequential/blocking)
 
 ## Roadmap
 
 - [x] Milestone 1: single-client echo server, framing protocol
-- [ ] Milestone 2: async I/O, multiple concurrent clients (Boost.Asio event loop)
+- [x] Milestone 2: async I/O, multiple concurrent clients (Boost.Asio event loop)
 - [ ] Milestone 3: token-based authentication handshake
 - [ ] Milestone 4: simulated instrument data generator thread + thread-safe
       handoff (queue for logged data, latest-value slot for live dashboard)
@@ -40,4 +49,5 @@ Every message is framed as:
 [4 bytes: length, big-endian uint32][N bytes: payload]
 ​```
 
-The server currently echoes any received message back to the sender.
+The server currently accepts multiple concurrent clients and echoes any
+received message back to the sender that sent it.
