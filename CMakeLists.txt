@@ -12,7 +12,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)   # <-- new: needed for IntelliSense fix b
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Threads REQUIRED)
 
-add_executable(fluxgate src/main.cpp)
+add_executable(fluxgate
+    src/main.cpp
+    src/server.cpp
+    src/session.cpp
+)
 target_link_libraries(fluxgate PRIVATE Boost::headers Boost::system Threads::Threads)
 
 target_compile_options(fluxgate PRIVATE -Wall -Wextra)
