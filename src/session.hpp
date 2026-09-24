@@ -1,5 +1,7 @@
 #pragma once
 
+#include "authenticator.hpp"
+
 #include <boost/asio.hpp>
 #include <memory>
 #include <vector>
@@ -15,7 +17,7 @@ namespace fluxgate {
 // created it has returned.
 class Session : public std::enable_shared_from_this<Session> {
 public:
-    explicit Session(boost::asio::ip::tcp::socket socket);
+    Session(boost::asio::ip::tcp::socket socket, const Authenticator& authenticator);
 
     void start();
 
@@ -25,6 +27,9 @@ private:
     void write_echo();
 
     boost::asio::ip::tcp::socket socket_;
+    const Authenticator& authenticator_;
+    bool authenticated_=false;
+
     std::vector<char> header_buf_;
     std::vector<char> body_buf_;
     std::vector<char> out_header_;

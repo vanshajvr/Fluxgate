@@ -9,10 +9,11 @@ namespace fluxgate {
 
 using boost::asio::ip::tcp;
 
-Session::Session(tcp::socket socket) : socket_(std::move(socket)) {}
+Session::Session(tcp::socket socket, const Authenticator& authenticator) 
+    : socket_(std::move(socket)), authenticator_(authenticator) {}
 
 void Session::start() {
-    std::cout << "Client connected: " << socket_.remote_endpoint() << "\n";
+    std::cout << "Client connected: " << socket_.remote_endpoint() << " - awaiting token\n";
     read_header();
 }
 
@@ -45,8 +46,23 @@ void Session::read_body(uint32_t length) {
                 std::cout << "Client disconnected.\n";
                 return;
             }
-            std::string as_text(body_buf_.begin(), body_buf_.end());
-            std::cout << "Received (" << body_buf_.size() << " bytes): " << as_text << "\n";
+
+            std::string received(body_buf_.begin(), body_buf_.end());
+
+            if(!authenticated_) {
+
+                if (authenticator_.verify(received)) {
+                    authenticated_=true;
+                    std::cout<<"Client authenticated.\n";
+                    read_header();
+                } else {
+                    std::cout<<"Auth failed, closing connection.\n";
+                }
+                return;
+
+            }
+
+            std::cout<<"Recieved (" <<received.size()<<" bytes): " <<received << "\n";
             write_echo();
         });
 }
