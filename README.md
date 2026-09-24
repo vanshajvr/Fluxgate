@@ -38,7 +38,7 @@ clients independent of already-connected ones
 
 - [x] Milestone 1: single-client echo server, framing protocol
 - [x] Milestone 2: async I/O, multiple concurrent clients (Boost.Asio event loop)
-- [ ] Milestone 3a: token-list authentication handshake
+- [x] Milestone 3a: token-list authentication handshake
 - [ ] Milestone 3b: upgrade to signed JWT verification
 - [ ] Milestone 4: simulated instrument data generator thread + thread-safe
       handoff (queue for logged data, latest-value slot for live dashboard)
