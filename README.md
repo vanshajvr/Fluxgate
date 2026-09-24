@@ -19,12 +19,27 @@ the Python-based tooling in the rest of my portfolio.
   simultaneously, each sending multiple messages, all round-tripping correctly
   with interleaved delivery (proof of true concurrent handling, not
   sequential/blocking)
+- Refactored from a single `main.cpp` into separate modules (protocol,
+  session, server) for maintainability as auth and concurrency features grow
+
+## Project structure
+```
+src/
+├── main.cpp — entry point: creates io_context, creates Server, runs()
+├── protocol.hpp — shared wire-format constants
+├── session.hpp/cpp — Session: owns one client's socket, buffers, and
+│ read/write message loop
+└── server.hpp/cpp — Server: owns the acceptor, keeps accepting new
+clients independent of already-connected ones
+```
+
 
 ## Roadmap
 
 - [x] Milestone 1: single-client echo server, framing protocol
 - [x] Milestone 2: async I/O, multiple concurrent clients (Boost.Asio event loop)
-- [ ] Milestone 3: token-based authentication handshake
+- [ ] Milestone 3a: token-list authentication handshake
+- [ ] Milestone 3b: upgrade to signed JWT verification
 - [ ] Milestone 4: simulated instrument data generator thread + thread-safe
       handoff (queue for logged data, latest-value slot for live dashboard)
 - [ ] Milestone 5: C# client / dashboard
@@ -34,20 +49,16 @@ the Python-based tooling in the rest of my portfolio.
 
 Requires CMake, a C++17 compiler, and Boost (system component).
 
-​```bash
+```bash
 mkdir build && cd build
 cmake ..
 make
 ./fluxgate
-​```
+```
 
 ## Protocol
 
 Every message is framed as:
-
-​```
-[4 bytes: length, big-endian uint32][N bytes: payload]
-​```
 
 The server currently accepts multiple concurrent clients and echoes any
 received message back to the sender that sent it.
